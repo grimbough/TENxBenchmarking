@@ -1,0 +1,50 @@
+---
+title: "Uncompressed HDF5"
+output: html_document
+---
+
+```{r, setup, echo=FALSE, message=FALSE}
+
+if(packageVersion('rhdf5') != "2.23.0") {
+    BiocInstaller::biocLite('rhdf5', suppressUpdates = TRUE, ask = FALSE)
+}
+if(packageVersion('DelayedArray') != "0.5.1") {
+    BiocInstaller::biocLite('DelayedArray', suppressUpdates = TRUE, ask = FALSE)
+}
+
+library(ExperimentHub)
+setExperimentHubOption("cache", "/tmpdata/msmith/ExperimentHub/")
+```
+
+```{r, load-data, message=FALSE}
+library(TENxBrainData)
+library(microbenchmark)
+```
+
+The code below details how to create the HDF5 file containing the uncompressed dataset.  This requires being able to hold the entire matrix in memory (possibly twice due to internal R copying), so you need at least 300GB of RAM!
+
+```{r, create-dataset, eval=FALSE}
+library(rhdf5)
+tenx <- TENxBrainData()
+tenx.inmem <- as.matrix(counts(tenx))
+
+h5File <- '/tmpdata/msmith/tenx_uncompressed.h5'
+h5createFile(h5File)
+h5createDataset(file = h5File, dataset = "counts", dims = dim(tenx.inmem), chunk = c(100,100),
+                level = 0, storage.mode = "integer")
+h5write(tenx.inmem, file = h5File, name = "counts" )
+```
+
+```{r, run-benchmark}
+options(DelayedArray.block.size=2e9)
+tenx.uncmp <- HDF5Array(file = '/tmpdata/msmith/tenx_uncompressed.h5', 
+                            name = "counts")
+tenx.sub.uncmp <- tenx.uncmp[,1:13000]
+
+bm2 <- microbenchmark(colSums(tenx.sub.uncmp),
+                      times = 10L, unit = "s",
+                      control = list(order = "block", warmup = 2))
+bm2$expr <- "uncompressed"
+save(bm2, file = "/g/huber/users/msmith/hdf5_benchmarking/bm2.rda")
+bm2
+```
