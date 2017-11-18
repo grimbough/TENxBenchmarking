@@ -34,7 +34,7 @@ options()$DelayedArray.block.size
 
 bm3a <- microbenchmark(colSums(counts(tenx.sub)), 
                       times = 15L, unit = "s",
-                      control = list(order = "block", warmup = 3))
+                      control = list(order = "block", warmup = 0))
 bm3a$expr <- "DelayedArray"
 save(bm3a, file = "/g/huber/users/msmith/hdf5_benchmarking/bm3a.rda")
 bm3a
