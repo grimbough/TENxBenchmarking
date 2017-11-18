@@ -31,7 +31,7 @@ ggplot(bm, aes(x = expr, y = time / 1e9)) +
     geom_boxplot(fill = "deepskyblue3") + 
     ylab("time (secs)") + 
     xlab("setting") +
-    theme(axis.text=element_text(size=7))
+    theme(axis.text=element_text(size=6))
 ```
 
 ```{r, sessionInfo}

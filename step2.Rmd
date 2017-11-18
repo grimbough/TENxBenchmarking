@@ -8,7 +8,7 @@ output: html_document
 if(packageVersion('rhdf5') != "2.23.0") {
     BiocInstaller::biocLite('rhdf5', suppressUpdates = TRUE, ask = FALSE)
 }
-if(packageVersion('DelayedArray') != "0.5.1") {
+if(packageVersion('DelayedArray') == "0.5.1.1") {
     BiocInstaller::biocLite('DelayedArray', suppressUpdates = TRUE, ask = FALSE)
 }
 
@@ -39,11 +39,11 @@ h5write(tenx.inmem, file = h5File, name = "counts" )
 options(DelayedArray.block.size=2e9)
 tenx.uncmp <- HDF5Array(file = '/tmpdata/msmith/tenx_uncompressed.h5', 
                             name = "counts")
-tenx.sub.uncmp <- tenx.uncmp[,1:13000]
+tenx.sub.uncmp <- tenx.uncmp[,1:130000]
 
 bm2 <- microbenchmark(colSums(tenx.sub.uncmp),
-                      times = 10L, unit = "s",
-                      control = list(order = "block", warmup = 2))
+                      times = 15L, unit = "s",
+                      control = list(order = "block", warmup = 3))
 bm2$expr <- "uncompressed"
 save(bm2, file = "/g/huber/users/msmith/hdf5_benchmarking/bm2.rda")
 bm2

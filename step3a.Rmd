@@ -11,8 +11,8 @@ output: html_document
 if(packageVersion('rhdf5') != "2.23.0") {
     BiocInstaller::biocLite('rhdf5', suppressUpdates = TRUE, ask = FALSE)
 }
-if(packageVersion('DelayedArray') == "0.5.1") {
-    devtools::install_github(repo = "grimbough/DelayedArray", ref = "b2374e7",  quiet = TRUE, force = TRUE)
+if(packageVersion('DelayedArray') != "0.5.1.1") {
+    devtools::install_github(repo = "grimbough/DelayedArray", ref = "d61695b",  quiet = TRUE, force = TRUE)
 }
 
 library(ExperimentHub)
@@ -23,7 +23,7 @@ setExperimentHubOption("cache", "/tmpdata/msmith/ExperimentHub/")
 library(TENxBrainData)
 library(microbenchmark)
 tenx <- TENxBrainData()
-tenx.sub <- tenx[,1:13000]
+tenx.sub <- tenx[,1:130000]
 ```
 
 ```{r, rhdf5-dev}
@@ -33,8 +33,8 @@ packageVersion('DelayedArray')
 options()$DelayedArray.block.size
 
 bm3a <- microbenchmark(colSums(counts(tenx.sub)), 
-                      times = 10L, unit = "s",
-                      control = list(order = "block", warmup = 2))
+                      times = 15L, unit = "s",
+                      control = list(order = "block", warmup = 3))
 bm3a$expr <- "DelayedArray"
 save(bm3a, file = "/g/huber/users/msmith/hdf5_benchmarking/bm3a.rda")
 bm3a
