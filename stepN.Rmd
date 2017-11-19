@@ -6,18 +6,13 @@ output: html_document
 
 ## Summarising the results
  
-```{r, installBranch, results = 'hide', message = FALSE, warning = FALSE}
-
+```{r, load-benchmarks, results = 'hide', message = FALSE, warning = FALSE}
 library(ggplot2)
 library(microbenchmark)
 
-load(file = "/g/huber/users/msmith/hdf5_benchmarking/bm1.rda")
-load(file = "/g/huber/users/msmith/hdf5_benchmarking/bm1a.rda")
-load(file = "/g/huber/users/msmith/hdf5_benchmarking/bm2.rda")
-load(file = "/g/huber/users/msmith/hdf5_benchmarking/bm3.rda")
-load(file = "/g/huber/users/msmith/hdf5_benchmarking/bm3a.rda")
-load(file = "/g/huber/users/msmith/hdf5_benchmarking/bm4.rda")
-load(file = "/g/huber/users/msmith/hdf5_benchmarking/bm5.rda")
+f1 <- list.files("/media/Storage/Work/TENxBenchmarking", 
+                 pattern = "bm[0-9a-z]*.rda", full.names = TRUE)
+sapply(X = f1, load, envir = .GlobalEnv)
 ```
 
 ```{r, combine-benchmarks}
@@ -36,12 +31,22 @@ ggplot(bm, aes(x = expr, y = time / 1e9), fill = cmp) +
 ```
 
 ```{r, plotting2, out.width = "100%"}
-bm.first <- bm[seq(1,nrow(bm),by = 15),]
+bm.first <- bm[seq(1,nrow(bm),by = 5),]
 ggplot(bm.first, aes(x = expr, y = time / 1e9, fill = cmp)) + 
     geom_bar(stat = 'identity') + 
     ylab("time (secs)") + 
     xlab("setting") +
     theme(axis.text=element_text(size=6))
+```
+
+```{r, loadResults}
+f2 <- list.files("/media/Storage/Work/TENxBenchmarking", 
+                 pattern = "res[0-9a-z]*.rda", full.names = TRUE)
+sapply(X = f2, load, envir = .GlobalEnv)
+```
+
+```{r, test-identical}
+sapply(list(res1, res2, res3, res3a, res4, res5), FUN = all.equal, current = res1, check.names = FALSE)
 ```
 
 ```{r, sessionInfo}

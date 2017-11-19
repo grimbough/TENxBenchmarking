@@ -10,41 +10,48 @@ if(packageVersion('rhdf5') != "2.23.0") {
 if(packageVersion('DelayedArray') == "0.5.1.1") {
     BiocInstaller::biocLite('DelayedArray', suppressUpdates = TRUE, ask = FALSE)
 }
-
-library(ExperimentHub)
-setExperimentHubOption("cache", "/tmpdata/msmith/ExperimentHub/")
 ```
     
 ## Loading the TenX brain data
     
-```{r, load-data, message=FALSE}
+```{r, load-libs, message=FALSE}
 library(TENxBrainData)
 library(pryr)
 library(microbenchmark)
+```
+
+```{r, load-data, message=FALSE}
 tenx <- TENxBrainData()
 dim(tenx)
 ```
 
 ```{r, select-subset}
-tenx.sub <- tenx[,1:130000]
-#tenx.sub <- tenx
-system.time(tenx.inmem <- as.matrix(counts(tenx.sub)))
+tenx.sub <- tenx[,1:13000]
+system.time(tenx.inmem <- as.matrix(counts(tenx.sub[,1:13000])))
 object_size(tenx.sub)
 object_size(tenx.inmem)
 ```
 
 ## Calculating column sums
 
+```{r, save-results}
+system.time(res1 <- colSums(counts(tenx.sub)))
+save(res1, file = "/media/Storage/Work/TENxBenchmarking/res1.rda")
+```
+
 ```{r, colSums}
 bm1 <- microbenchmark(colSums(counts(tenx.sub)),
                 colSums(tenx.inmem), 
-               times = 15L, unit = "s",
+               times = 5L, unit = "s",
                control = list(order = "block", warmup = 0))
-bm1$expr <- rep(c("naive", "in_mem"), each = 15)
-save(bm1, file = "/g/huber/users/msmith/hdf5_benchmarking/bm1.rda")
+bm1$expr <- rep(c("naive", "in_mem"), each = 5)
+save(bm1, file = "/media/Storage/Work/TENxBenchmarking/bm1.rda")
 bm1
 ```
 
+```{r, sessionInfo}
+sessionInfo()
+```
 
 
 
