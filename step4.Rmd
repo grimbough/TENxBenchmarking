@@ -8,8 +8,8 @@ output: html_document
  
 ```{r, installBranch, results = 'hide', message = FALSE, warning = FALSE}
 
-if(packageVersion('rhdf5') == "2.23.0") {
-    devtools::install_github(repo = "grimbough/rhdf5", ref = "5e1f0be", quiet = TRUE, force = TRUE)
+if(packageVersion('rhdf5') != "2.23.1.1") {
+    devtools::install_github(repo = "grimbough/rhdf5", ref = "d12b2df", quiet = TRUE, force = TRUE)
 }
 if(packageVersion('DelayedArray') != "0.5.1.1") {
     devtools::install_github(repo = "grimbough/DelayedArray", ref = "d61695b",  quiet = TRUE, force = TRUE)
@@ -28,8 +28,9 @@ tenx.sub <- tenx[,1:13000]
 ```
 
 ```{r, save-results}
-system.time(res4 <- colSums(counts(tenx.sub)))
-save(res4, file = "/media/Storage/Work/TENxBenchmarking/res4.rda")
+systime <- system.time(res4 <- colSums(counts(tenx.sub)))
+save(res4, file = "res4.rda")
+systime
 ```
 
 ```{r, run-benchmark}
@@ -39,8 +40,10 @@ packageVersion('DelayedArray')
 bm4 <- microbenchmark(colSums(counts(tenx.sub)), 
                       times = 5L, unit = "s",
                       control = list(order = "block", warmup = 0))
-bm4$expr <- "DelayedArray+\nrhdf5"
-save(bm4, file = "/media/Storage/Work/TENxBenchmarking/bm4.rda")
+bm4 <- rbind(data.frame(expr = "", time = as.numeric(systime[3]) * 1e9), bm4)
+
+bm4$expr <- "rhdf5 &\nDelayedArray"
+save(bm4, file = "bm4.rda")
 bm4
 ```
 

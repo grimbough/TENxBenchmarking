@@ -4,8 +4,8 @@ output: html_document
 ---
 
 ```{r, setup, echo=FALSE, message=FALSE}
-if(packageVersion('rhdf5') == "2.23.0") {
-    devtools::install_github(repo = "grimbough/rhdf5", ref = "5e1f0be", quiet = TRUE, force = TRUE)
+if(packageVersion('rhdf5') != "2.23.1.1") {
+    devtools::install_github(repo = "grimbough/rhdf5", ref = "d12b2df", quiet = TRUE, force = TRUE)
 }
 if(packageVersion('DelayedArray') != "0.5.1.1") {
     devtools::install_github(repo = "grimbough/DelayedArray", ref = "d61695b",  quiet = TRUE, force = TRUE)
@@ -19,21 +19,24 @@ options(DelayedArray.block.size=2e9)
 ```
 
 ```{r, load-data}
-tenx.uncmp <- HDF5Array(file = '/media/Storage/Work/TENxBenchmarking/tenx_uncompressed.h5', 
+tenx.uncmp <- HDF5Array(file = '/tmpdata/msmith/tenx_uncompressed.h5', 
                         name = "counts")
 tenx.sub.uncmp <- tenx.uncmp[,1:13000]
 ```
 
 ```{r, save-results}
-system.time(res5 <- colSums(tenx.sub.uncmp))
-save(res5, file = "/media/Storage/Work/TENxBenchmarking/res5.rda")
+systime <- system.time(res5 <- colSums(tenx.sub.uncmp))
+save(res5, file = "res5.rda")
+systime
 ```
 
 ```{r, uncompressed-tweaks}
 bm5 <- microbenchmark(colSums(tenx.sub.uncmp),
                       times = 5L, unit = "s",
                       control = list(order = "block", warmup = 0))
-bm5$expr <- "DelayedArray+\nrhdf5+\nuncompressed"
-save(bm5, file = "/media/Storage/Work/TENxBenchmarking/bm5.rda")
+bm5 <- rbind(data.frame(expr = "", time = as.numeric(systime[3]) * 1e9), bm5)
+
+bm5$expr <- "rhdf5 &\nDelayedArray2"
+save(bm5, file = "bm5.rda")
 bm5
 ```

@@ -4,7 +4,7 @@ output:
 ---
 
 ```{r, exhub, echo = FALSE, message = FALSE}
-if(packageVersion('rhdf5') != "2.23.0") {
+if(packageVersion('rhdf5') == "2.23.1.1") {
     BiocInstaller::biocLite('rhdf5', suppressUpdates = TRUE, ask = FALSE)
 }
 if(packageVersion('DelayedArray') == "0.5.1.1") {
@@ -27,7 +27,7 @@ dim(tenx)
 
 ```{r, select-subset}
 tenx.sub <- tenx[,1:13000]
-system.time(tenx.inmem <- as.matrix(counts(tenx.sub[,1:13000])))
+system.time(tenx.inmem <- as.matrix(counts(tenx.sub)))
 object_size(tenx.sub)
 object_size(tenx.inmem)
 ```
@@ -35,8 +35,15 @@ object_size(tenx.inmem)
 ## Calculating column sums
 
 ```{r, save-results}
-system.time(res1 <- colSums(counts(tenx.sub)))
-save(res1, file = "/media/Storage/Work/TENxBenchmarking/res1.rda")
+systime <- system.time(res1 <- colSums(counts(tenx.sub)))
+save(res1, file = "res1.rda")
+systime
+```
+
+```{r, save-results2}
+systime.inmem <- system.time(res1a <- colSums(tenx.inmem))
+save(res1a, file = "res1a.rda")
+systime.inmem
 ```
 
 ```{r, colSums}
@@ -44,8 +51,14 @@ bm1 <- microbenchmark(colSums(counts(tenx.sub)),
                 colSums(tenx.inmem), 
                times = 5L, unit = "s",
                control = list(order = "block", warmup = 0))
-bm1$expr <- rep(c("naive", "in_mem"), each = 5)
-save(bm1, file = "/media/Storage/Work/TENxBenchmarking/bm1.rda")
+
+bm1 <- rbind(data.frame(expr = "", time = as.numeric(systime[3]) * 1e9), 
+             bm1[1:5,],
+             data.frame(expr = "", time = as.numeric(systime.inmem[3]) * 1e9),
+             bm1[6:10,])
+
+bm1$expr <- rep(c("naive", "in memory"), each = 6)
+save(bm1, file = "bm1.rda")
 bm1
 ```
 

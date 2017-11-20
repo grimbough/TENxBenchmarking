@@ -5,15 +5,12 @@ output: html_document
 
 ```{r, setup, echo=FALSE, message=FALSE}
 
-if(packageVersion('rhdf5') != "2.23.0") {
+if(packageVersion('rhdf5') == "2.23.1.1") {
     BiocInstaller::biocLite('rhdf5', suppressUpdates = TRUE, ask = FALSE)
 }
 if(packageVersion('DelayedArray') == "0.5.1.1") {
     BiocInstaller::biocLite('DelayedArray', suppressUpdates = TRUE, ask = FALSE)
 }
-
-#library(ExperimentHub)
-#setExperimentHubOption("cache", "/tmpdata/msmith/ExperimentHub/")
 ```
 
 ```{r, load-data, message=FALSE}
@@ -28,7 +25,7 @@ library(rhdf5)
 tenx <- TENxBrainData()
 tenx.inmem <- as.matrix(counts(tenx))
 
-h5File <- '/media/Storage/Work/TENxBenchmarking/tenx_uncompressed.h5'
+h5File <- '/tmpdata/msmith/tenx_uncompressed.h5'
 h5createFile(h5File)
 h5createDataset(file = h5File, dataset = "counts", dims = dim(tenx.inmem), chunk = c(100,100),
                 level = 0, storage.mode = "integer")
@@ -37,22 +34,24 @@ h5write(tenx.inmem, file = h5File, name = "counts" )
 
 ```{r, subset-data}
 options(DelayedArray.block.size=2e9)
-tenx.uncmp <- HDF5Array(file = '/media/Storage/Work/TENxBenchmarking/tenx_uncompressed.h5', 
-                            name = "counts")
+tenx.uncmp <- HDF5Array(file = '/tmpdata/msmith/tenx_uncompressed.h5', 
+                        name = "counts")
 tenx.sub.uncmp <- tenx.uncmp[,1:13000]
 ```
 
 ```{r, save-results}
-system.time(res2 <- colSums(tenx.sub.uncmp))
-save(res2, file = "/media/Storage/Work/TENxBenchmarking/res2.rda")
+systime <- system.time(res2 <- colSums(tenx.sub.uncmp))
+save(res2, file = "res2.rda")
+systime
 ```
 
 ```{r, run-benchmark}
 bm2 <- microbenchmark(colSums(tenx.sub.uncmp),
                       times = 5L, unit = "s",
                       control = list(order = "block", warmup = 0))
-bm2$expr <- "uncompressed"
-save(bm2, file = "/media/Storage/Work/TENxBenchmarking/bm2.rda")
+bm2 <- rbind(data.frame(expr = "", time = as.numeric(systime[3]) * 1e9), bm2)
+bm2$expr <- "2GB block size2"
+save(bm2, file = "bm2.rda")
 bm2
 ```
 

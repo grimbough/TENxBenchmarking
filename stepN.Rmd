@@ -1,53 +1,89 @@
 ---
-title: "Summarising"
-author: "Mike Smith"
+title: "Compiling the results"
 output: html_document
 ---
 
-## Summarising the results
- 
-```{r, load-benchmarks, results = 'hide', message = FALSE, warning = FALSE}
-library(ggplot2)
-library(microbenchmark)
+# Checking the results
 
-f1 <- list.files("/media/Storage/Work/TENxBenchmarking", 
-                 pattern = "bm[0-9a-z]*.rda", full.names = TRUE)
-sapply(X = f1, load, envir = .GlobalEnv)
-```
+We want to check that the calculate column sums are the same for all of the various runs.  If they aren't, then obviously the timing comparisons are invalid.
 
-```{r, combine-benchmarks}
-bm <- rbind(bm1,bm1a,bm2,bm3,bm3a,bm4,bm5)
-bm
-bm$expr <- factor(bm$expr, levels = c("naive", "block_size", "uncompressed", "rhdf5", "DelayedArray", "DelayedArray+\nrhdf5", "DelayedArray+\nrhdf5+\nuncompressed", "in_mem"))
-bm$cmp <- ifelse(grepl(x = bm$expr, "uncompressed"),"uncompressed", "compressed")
-```
-
-```{r, plotting, out.width = "100%"}
-ggplot(bm, aes(x = expr, y = time / 1e9), fill = cmp) + 
-    geom_boxplot(fill = "deepskyblue3") + 
-    ylab("time (secs)") + 
-    xlab("setting") +
-    theme(axis.text=element_text(size=6))
-```
-
-```{r, plotting2, out.width = "100%"}
-bm.first <- bm[seq(1,nrow(bm),by = 5),]
-ggplot(bm.first, aes(x = expr, y = time / 1e9, fill = cmp)) + 
-    geom_bar(stat = 'identity') + 
-    ylab("time (secs)") + 
-    xlab("setting") +
-    theme(axis.text=element_text(size=6))
-```
-
-```{r, loadResults}
-f2 <- list.files("/media/Storage/Work/TENxBenchmarking", 
-                 pattern = "res[0-9a-z]*.rda", full.names = TRUE)
+```{r, loadResults, results='hide'}
+f2 <- list.files(pattern = "res[0-9a-z]*.rda", full.names = TRUE)
 sapply(X = f2, load, envir = .GlobalEnv)
 ```
 
 ```{r, test-identical}
-sapply(list(res1, res2, res3, res3a, res4, res5), FUN = all.equal, current = res1, check.names = FALSE)
+sapply(list(res1a, res2, res3, res3a, res4, res5), 
+       FUN = all.equal, 
+       current = res1, 
+       check.names = FALSE)
 ```
+
+## Summarising the results
+
+```{r, load-benchmarks, results = 'hide', message = FALSE, warning = FALSE}
+f1 <- list.files(pattern = "bm[0-9a-z]*.rda", full.names = TRUE)
+sapply(X = f1, load, envir = .GlobalEnv)
+```
+
+Now we combine the various benchmark timing data frames and add a column representing whether the data are compress, uncompressed, or held in memory.  Finally we set the factor levels for the settings that were used so they plot in the order we tried the improvments, rather than alphabetically.
+
+```{r, combine-benchmarks}
+library(microbenchmark)
+
+bm <- rbind(bm1,bm1a,bm3,bm3a,bm4,bm2,bm5)
+bm$data_type <- factor(c(rep("compressed", 6), rep("in memory", 6), 
+                         rep("compressed", 24), rep("uncompressed", 12)),
+                       levels = c("compressed", "uncompressed", "in memory"))
+bm$expr <- factor(bm$expr, 
+                  levels = rev(c("naive", "2GB block size", "rhdf5", "DelayedArray", 
+                                 "rhdf5 &\nDelayedArray", "2GB block size2", 
+                                 "rhdf5 &\nDelayedArray2", "in memory")))
+bm
+```
+
+Plotting the timings of all six iterations for each set of options.
+
+```{r, plotting, out.width = "100%", fig.width = 10, fig.asp = 0.47}
+library(ggplot2)
+
+ggplot(bm, aes(x = expr, 
+               y = time / 1e9, colour = data_type)) + 
+    geom_point(size = 6) + 
+    geom_point(data = bm[seq(1,nrow(bm),6),], col = "black", shape = 13, size = 6) +
+    ylab("time (secs)") + 
+    xlab("setting") +
+    theme_bw() +
+    theme(axis.text=element_text(size=10)) +
+    scale_color_brewer(palette = "Dark2") +
+    coord_flip() +
+    scale_y_continuous(expand = c(0,0), 
+                       breaks = seq(0, max(bm$time/1e9)*1.1, 60),
+                       minor_breaks = seq(0, max(bm$time/1e9)*1.1, 20)) +
+    scale_x_discrete(labels = gsub(levels(bm$expr), pattern = "[0-9]$", replacement = "")) +
+    expand_limits(y = c(0, max(bm$time/1e9) * 1.1))
+```
+
+We also plot only the first run at each setting, since this seems more comparable to a real-world use case for a summary statistic like `colSums()`.
+
+```{r, plotting2, out.width = "100%", fig.width = 10, fig.asp = 0.47}
+bm.first <- bm[seq(1,nrow(bm),by = 6),]
+ggplot(bm.first, aes(x = expr, y = time / 1e9, color = data_type)) + 
+    geom_point(size = 6) + 
+    geom_segment(aes(xend = expr, yend = time / 1e9), y = 0, lty = 2, lwd = 1.5) +
+    ylab("time (secs)") + 
+    xlab("setting") +
+    theme_bw() +
+    theme(axis.text=element_text(size=10)) +
+    scale_color_brewer(palette = "Dark2") +
+    coord_flip() +
+    scale_y_continuous(expand = c(0,0), 
+                       breaks = seq(0, max(bm.first$time/1e9)*1.1, 60),
+                       minor_breaks = seq(0, max(bm.first$time/1e9)*1.1, 20)) +
+    scale_x_discrete(labels = gsub(levels(bm.first$expr), pattern = "[0-9]$", replacement = "")) +
+    expand_limits(y = c(0, max(bm.first$time/1e9) * 1.1))
+```
+
 
 ```{r, sessionInfo}
 sessionInfo()

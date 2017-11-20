@@ -4,7 +4,7 @@ output:
 ---
 
 ```{r, exhub, echo = FALSE, message = FALSE}
-if(packageVersion('rhdf5') != "2.23.0") {
+if(packageVersion('rhdf5') == "2.23.1.1") {
     BiocInstaller::biocLite('rhdf5', suppressUpdates = TRUE, ask = FALSE)
 }
 if(packageVersion('DelayedArray') == "0.5.1.1") {
@@ -36,16 +36,18 @@ options(DelayedArray.block.size=2e9)
 Now we'll calculate the column sums again.  Hopefully the time will decrease now there is less time spent loading data into memory.
 
 ```{r, save-results}
-system.time(res1a <- colSums(counts(tenx.sub)))
-save(res1a, file = "/media/Storage/Work/TENxBenchmarking/res1a.rda")
+systime <- system.time(res1a <- colSums(counts(tenx.sub)))
+save(res1a, file = "res1a.rda")
+systime
 ```
 
 ```{r, bigger-block}
 bm1a <- microbenchmark(colSums(counts(tenx.sub)), 
                        times = 5L, unit = "s",
                        control = list(order = "block", warmup = 0))
-bm1a$expr <- "block_size"
-save(bm1a, file = "/media/Storage/Work/TENxBenchmarking/bm1a.rda")
+bm1a <- rbind(data.frame(expr = "", time = as.numeric(systime[3]) * 1e9), bm1a)
+bm1a$expr <- "2GB block size"
+save(bm1a, file = "bm1a.rda")
 bm1a
 ```
 

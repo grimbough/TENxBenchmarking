@@ -8,8 +8,8 @@ output: html_document
  
 ```{r, installBranch, results = 'hide', message = FALSE, warning = FALSE}
 
-if(packageVersion('rhdf5') == "2.23.0") {
-    devtools::install_github(repo = "grimbough/rhdf5", ref = "5e1f0be", quiet = TRUE, force = TRUE)
+if(packageVersion('rhdf5') != "2.23.1.1") {
+    devtools::install_github(repo = "grimbough/rhdf5", ref = "d12b2df", quiet = TRUE, force = TRUE)
 }
 if(packageVersion('DelayedArray') == "0.5.1.1") {
     BiocInstaller::biocLite("DelayedArray", suppressUpdates = TRUE, ask = FALSE)
@@ -28,16 +28,18 @@ tenx.sub <- tenx[,1:13000]
 ```
 
 ```{r, save-results}
-system.time(res3 <- colSums(counts(tenx.sub)))
-save(res3, file = "/media/Storage/Work/TENxBenchmarking/res3.rda")
+systime <- system.time(res3 <- colSums(counts(tenx.sub)))
+save(res3, file = "res3.rda")
+systime
 ```
 
 ```{r, rhdf5-dev}
 bm3 <- microbenchmark(colSums(counts(tenx.sub)), 
                       times = 5L, unit = "s",
                       control = list(order = "block", warmup = 0))
+bm3 <- rbind(data.frame(expr = "", time = as.numeric(systime[3]) * 1e9), bm3)
 bm3$expr <- "rhdf5"
-save(bm3, file = "/media/Storage/Work/TENxBenchmarking/bm3.rda")
+save(bm3, file = "bm3.rda")
 bm3
 ```
 
