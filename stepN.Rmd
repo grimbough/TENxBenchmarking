@@ -17,6 +17,9 @@ sapply(list(res1a, res2, res3, res3a, res4, res5),
        FUN = all.equal, 
        current = res1, 
        check.names = FALSE)
+sapply(list(res1a, res2, res3, res3a, res4, res5), 
+       FUN = identical, 
+       y = res1)
 ```
 
 ## Summarising the results
