@@ -8,15 +8,15 @@ A collection of scripts to assess the performance of *R* & *Bioconductor* tools 
 Because some of the tests require installing alternative versions of R packages, which I couldn't achieve reliably once the **TENxBrainData** package and its dependencies had been loaded, I choose to run each step in a new R session.  As a result there is a seperate *.Rmd* file for each step detailed in the blog post.  The names of the files and their purposes are listed below.
 
 | File          | Purpose       | 
-| :------------ |:-------------|
-| step1.Rmd  | Compute column sums using default settings, and compare with in-memory computation |
-| step1a.Rmd | Increase the **DelayedArray** block size |
-| step2.Rmd  | Create uncompressed dataset and benchmark |
-| step3.Rmd  | Install and run modified **rhdf** |
-| step3a.Rmd | Install and run modified **DelayedArray** |
-| step4.Rmd  | Run with both modified **rhdf5** and **DelayedArray** |
-| step5.Rmd  | Combine modified package with uncompressed dataset |
-| stepN.Rmd  | Loads all saved results, checks consistency and produces plots |
+| :------------ |:------------- |
+| step1.Rmd     | Compute column sums using default settings, and compare with in-memory computation |
+| step1a.Rmd    | Increase the **DelayedArray** block size |
+| step2.Rmd     | Create uncompressed dataset and benchmark |
+| step3.Rmd     | Install and run modified **rhdf** |
+| step3a.Rmd    | Install and run modified **DelayedArray** |
+| step4.Rmd     | Run with both modified **rhdf5** and **DelayedArray** |
+| step5.Rmd     | Combine modified package with uncompressed dataset |
+| stepN.Rmd     | Loads all saved results, checks consistency and produces plots |
 
 ## Running the scripts
 
@@ -32,3 +32,7 @@ Rscript -e 'library("rmarkdown"); render("step4.Rmd")' && \
 Rscript -e 'library("rmarkdown"); render("step5.Rmd")' && \
 Rscript -e 'library("rmarkdown"); render("stepN.Rmd")'
 ```
+
+## Results
+
+![](single_run.png "Single run timing results")
