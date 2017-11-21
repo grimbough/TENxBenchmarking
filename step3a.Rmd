@@ -24,7 +24,7 @@ options(DelayedArray.block.size=2e9)
 
 ```{r, load-data, message=FALSE}
 tenx <- TENxBrainData()
-tenx.sub <- tenx[,1:13000]
+tenx.sub <- tenx[,1:130000]
 ```
 
 ```{r, save-results}

@@ -21,7 +21,7 @@ library(microbenchmark)
 
 ```{r, load-data, message=FALSE}
 tenx <- TENxBrainData()
-tenx.sub <- tenx[,1:13000]
+tenx.sub <- tenx[,1:130000]
 ```
 
 ## Increasing the DelayedArray block size

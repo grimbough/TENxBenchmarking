@@ -1,4 +1,5 @@
 ---
+title: "Default settings + in-memory
 output: 
     html_document: default
 ---
@@ -26,7 +27,7 @@ dim(tenx)
 ```
 
 ```{r, select-subset}
-tenx.sub <- tenx[,1:13000]
+tenx.sub <- tenx[,1:130000]
 system.time(tenx.inmem <- as.matrix(counts(tenx.sub)))
 object_size(tenx.sub)
 object_size(tenx.inmem)
