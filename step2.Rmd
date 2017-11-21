@@ -3,6 +3,8 @@ title: "Uncompressed HDF5"
 output: html_document
 ---
 
+Here we use the default versions of **rhdf5** and **DelayedArray**, but with an uncompressed vesion of the counts table on disk.
+
 ```{r, setup, echo=FALSE, message=FALSE}
 
 if(packageVersion('rhdf5') == "2.23.1.1") {
@@ -16,13 +18,14 @@ if(packageVersion('DelayedArray') == "0.5.1.1") {
 ```{r, load-data, message=FALSE}
 library(TENxBrainData)
 library(microbenchmark)
+tenx <- TENxBrainData()
+options(DelayedArray.block.size=2e9)
 ```
 
 The code below details how to create the HDF5 file containing the uncompressed dataset.  This requires being able to hold the entire matrix in memory (possibly twice due to internal R copying), so you need at least 300GB of RAM!
 
 ```{r, create-dataset, eval=FALSE}
 library(rhdf5)
-tenx <- TENxBrainData()
 tenx.inmem <- as.matrix(counts(tenx))
 
 h5File <- '/tmpdata/msmith/tenx_uncompressed.h5'
@@ -32,21 +35,29 @@ h5createDataset(file = h5File, dataset = "counts", dims = dim(tenx.inmem), chunk
 h5write(tenx.inmem, file = h5File, name = "counts" )
 ```
 
+Now we create a new *SingleCellExperiment* object using the nncompressed HDF5Array as the counts table.
+
 ```{r, subset-data}
-options(DelayedArray.block.size=2e9)
-tenx.uncmp <- HDF5Array(file = '/tmpdata/msmith/tenx_uncompressed.h5', 
+h5.uncmp <- HDF5Array(file = '/tmpdata/msmith/tenx_uncompressed.h5', 
                         name = "counts")
-tenx.sub.uncmp <- tenx.uncmp[,1:13000]
+tenx.uncmp <- SingleCellExperiment(
+    list(counts = h5.uncmp), rowData = rowData(tenx), colData = colData(tenx)
+)
+tenx.sub.uncmp <- tenx.uncmp[,1:130000]
 ```
 
+Run first iteration and save the results.
+
 ```{r, save-results}
-systime <- system.time(res2 <- colSums(tenx.sub.uncmp))
+systime <- system.time(res2 <- colSums(counts(tenx.sub.uncmp)))
 save(res2, file = "res2.rda")
 systime
 ```
 
+Benchmark 5 more times.
+
 ```{r, run-benchmark}
-bm2 <- microbenchmark(colSums(tenx.sub.uncmp),
+bm2 <- microbenchmark(colSums(counts(tenx.sub.uncmp)),
                       times = 5L, unit = "s",
                       control = list(order = "block", warmup = 0))
 bm2 <- rbind(data.frame(expr = "", time = as.numeric(systime[3]) * 1e9), bm2)
