@@ -35,4 +35,6 @@ Rscript -e 'library("rmarkdown"); render("stepN.Rmd")'
 
 ## Results
 
+Here is one of the plots produced by *stepN.Rmd*, detailing the time required to calculate the column sum for each of the first 130,000 columns in *TENxBrainData*.
+
 ![](single_run.png "Single run timing results")
