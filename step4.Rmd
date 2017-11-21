@@ -1,10 +1,9 @@
 ---
 title: "DelayedArray Tweaks"
-author: "Mike Smith"
 output: html_document
 ---
 
-## Installing developmental version of **DelayedArray**
+This time we want to make sure we're using the modified versions of both **rhdf5** and **DelayedArray**.
  
 ```{r, installBranch, results = 'hide', message = FALSE, warning = FALSE}
 

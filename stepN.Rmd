@@ -3,8 +3,6 @@ title: "Compiling the results"
 output: html_document
 ---
 
-# Checking the results
-
 We want to check that the calculate column sums are the same for all of the various runs.  If they aren't, then obviously the timing comparisons are invalid.
 
 ```{r, loadResults, results='hide'}
@@ -14,22 +12,18 @@ sapply(X = f2, load, envir = .GlobalEnv)
 
 ```{r, test-identical}
 sapply(list(res1a, res2, res3, res3a, res4, res5), 
-       FUN = all.equal, 
-       current = res1, 
-       check.names = FALSE)
-sapply(list(res1a, res2, res3, res3a, res4, res5), 
        FUN = identical, 
        y = res1)
 ```
 
-## Summarising the results
+Assuming the results are the same from all tests, now we'll summarising them.  First, lets load all the saved benchmark results.
 
 ```{r, load-benchmarks, results = 'hide', message = FALSE, warning = FALSE}
 f1 <- list.files(pattern = "bm[0-9a-z]*.rda", full.names = TRUE)
 sapply(X = f1, load, envir = .GlobalEnv)
 ```
 
-Now we combine the various benchmark timing data frames and add a column representing whether the data are compress, uncompressed, or held in memory.  Finally we set the factor levels for the settings that were used so they plot in the order we tried the improvments, rather than alphabetically.
+Now we combine the various benchmark timing data frames and add a column representing whether the data are compressed, uncompressed, or held in memory.  Finally we set the factor levels for the settings that were used so they plot in the order we tried the improvments, rather than alphabetically.
 
 ```{r, combine-benchmarks}
 library(microbenchmark)
@@ -42,7 +36,6 @@ bm$expr <- factor(bm$expr,
                   levels = rev(c("naive", "2GB block size", "rhdf5", "DelayedArray", 
                                  "rhdf5 &\nDelayedArray", "2GB block size2", 
                                  "rhdf5 &\nDelayedArray2", "in memory")))
-bm
 ```
 
 Plotting the timings of all six iterations for each set of options.

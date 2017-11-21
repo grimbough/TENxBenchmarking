@@ -3,7 +3,7 @@ title: "Uncompressed HDF5 + Improvements"
 output: html_document
 ---
 
-Combining the modified versions of **rhdf5** and **DelayedArray**, with an uncompressed vesion of the counts table on disk.
+Combining the modified versions of **rhdf5** and **DelayedArray**, with an uncompressed version of the counts table on disk.
 
 ```{r, setup, echo=FALSE, message=FALSE}
 if(packageVersion('rhdf5') != "2.23.1.1") {

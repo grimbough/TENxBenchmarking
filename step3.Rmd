@@ -4,7 +4,7 @@ author: "Mike Smith"
 output: html_document
 ---
 
-## Installing developmental version of **rhdf5**
+Make sure we install the developmental version of **rhdf5**, but keep **DelayedArray** as the BioC version.
  
 ```{r, installBranch, results = 'hide', message = FALSE, warning = FALSE}
 

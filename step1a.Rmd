@@ -1,4 +1,5 @@
 ---
+title: "Increase DelayedArray block size"
 output: 
     html_document: default
 ---
@@ -12,7 +13,7 @@ if(packageVersion('DelayedArray') == "0.5.1.1") {
 }
 ```
     
-## Loading the TenX brain data
+Loading the 10X brain data
     
 ```{r, load-libs, message=FALSE}
 library(TENxBrainData)
@@ -24,9 +25,7 @@ tenx <- TENxBrainData()
 tenx.sub <- tenx[,1:130000]
 ```
 
-## Increasing the DelayedArray block size
-
-First we'll look at the current block size.  Then we'll adjust it to use 2Gb.
+Here we increase the **DelayedArray** block size. First we'll look at the current block size.  Then we'll adjust it to use 2Gb.
 
 ```{r, increase-block-size}
 options()$DelayedArray.block.size
@@ -40,6 +39,8 @@ systime <- system.time(res1a <- colSums(counts(tenx.sub)))
 save(res1a, file = "res1a.rda")
 systime
 ```
+
+Run 5 more times to check consistency.
 
 ```{r, bigger-block}
 bm1a <- microbenchmark(colSums(counts(tenx.sub)), 

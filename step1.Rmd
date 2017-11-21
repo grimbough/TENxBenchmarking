@@ -1,5 +1,5 @@
 ---
-title: "Default settings + in-memory
+title: "Default settings + in-memory"
 output: 
     html_document: default
 ---
@@ -13,7 +13,7 @@ if(packageVersion('DelayedArray') == "0.5.1.1") {
 }
 ```
     
-## Loading the TenX brain data
+Loading the 10X brain data.
     
 ```{r, load-libs, message=FALSE}
 library(TENxBrainData)
@@ -33,7 +33,7 @@ object_size(tenx.sub)
 object_size(tenx.inmem)
 ```
 
-## Calculating column sums
+Calculating column sums for the on-disk version
 
 ```{r, save-results}
 systime <- system.time(res1 <- colSums(counts(tenx.sub)))
@@ -41,11 +41,15 @@ save(res1, file = "res1.rda")
 systime
 ```
 
+Now we'll carry out the same calculation using the in-memory version.
+
 ```{r, save-results2}
 systime.inmem <- system.time(res1a <- colSums(tenx.inmem))
 save(res1a, file = "res1a.rda")
 systime.inmem
 ```
+
+Run both 5 more times to check consistency, and combined with the original results so we can load the all later.
 
 ```{r, colSums}
 bm1 <- microbenchmark(colSums(counts(tenx.sub)),
