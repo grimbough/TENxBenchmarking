@@ -4,15 +4,29 @@ author: "Mike Smith"
 output: html_document
 ---
 
+<style>
+pre {
+  overflow-x: auto;
+}
+pre code {
+  word-wrap: normal;
+  white-space: pre;
+}
+</style>
+
+```{r global_options, echo = FALSE, include = FALSE}
+options(width = 150)
+```
+
 Make sure we install the developmental version of **rhdf5**, but keep **DelayedArray** as the BioC version.
  
 ```{r, installBranch, results = 'hide', message = FALSE, warning = FALSE}
-
-if(packageVersion('rhdf5') != "2.23.1.1") {
-    devtools::install_github(repo = "grimbough/rhdf5", ref = "d12b2df", quiet = TRUE, force = TRUE)
+if(packageVersion('rhdf5') == "2.23.1") {
+    BiocInstaller::biocLite('grimbough/rhdf5', ref = "91f2e40", suppressUpdates = TRUE, ask = FALSE)
 }
-if(packageVersion('DelayedArray') == "0.5.1.1") {
-    BiocInstaller::biocLite("DelayedArray", suppressUpdates = TRUE, ask = FALSE)
+if(packageVersion('DelayedArray') > "0.5.6") {
+    BiocInstaller::biocLite('Bioconductor/DelayedArray', ref = "82d7d8b", suppressUpdates = TRUE, ask = FALSE)
+    BiocInstaller::biocLite("Bioconductor/HDF5Array", ref = "bd5760c", suppressUpdates = TRUE, ask = FALSE)
 }
 ```
 
@@ -24,7 +38,7 @@ options(DelayedArray.block.size=2e9)
 
 ```{r, load-data, message=FALSE}
 tenx <- TENxBrainData()
-tenx.sub <- tenx[,1:130000]
+tenx.sub <- tenx[,1:13000]
 ```
 
 ```{r, save-results}
@@ -33,7 +47,7 @@ save(res3, file = "res3.rda")
 systime
 ```
 
-```{r, rhdf5-dev}
+```{r, step3-rhdf5-dev}
 bm3 <- microbenchmark(colSums(counts(tenx.sub)), 
                       times = 5L, unit = "s",
                       control = list(order = "block", warmup = 0))
@@ -44,5 +58,5 @@ bm3
 ```
 
 ```{r, sessionInfo}
-sessionInfo()
+devtools::session_info(c("HDF5Array", "DelayedArray"))
 ```

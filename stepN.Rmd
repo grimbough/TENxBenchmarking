@@ -3,6 +3,20 @@ title: "Compiling the results"
 output: html_document
 ---
 
+<style>
+pre {
+  overflow-x: auto;
+}
+pre code {
+  word-wrap: normal;
+  white-space: pre;
+}
+</style>
+
+```{r global_options, echo = FALSE, include = FALSE}
+options(width = 150)
+```
+
 We want to check that the calculate column sums are the same for all of the various runs.  If they aren't, then obviously the timing comparisons are invalid.
 
 ```{r, loadResults, results='hide'}
@@ -11,7 +25,7 @@ sapply(X = f2, load, envir = .GlobalEnv)
 ```
 
 ```{r, test-identical}
-sapply(list(res1a, res2, res3, res3a, res4, res5), 
+sapply(list(res1a, res2, res3, res3a, res4, res5, res6, res7), 
        FUN = identical, 
        y = res1)
 ```
@@ -28,14 +42,15 @@ Now we combine the various benchmark timing data frames and add a column represe
 ```{r, combine-benchmarks}
 library(microbenchmark)
 
-bm <- rbind(bm1,bm1a,bm3,bm3a,bm4,bm2,bm5)
+bm <- rbind(bm1,bm1a,bm3,bm3a,bm4,bm2,bm5,bm6,bm7)
 bm$data_type <- factor(c(rep("compressed", 6), rep("in memory", 6), 
-                         rep("compressed", 24), rep("uncompressed", 12)),
+                         rep("compressed", 24), rep("uncompressed", 12),
+                         rep("compressed", 6), rep("uncompressed", 6)),
                        levels = c("compressed", "uncompressed", "in memory"))
 bm$expr <- factor(bm$expr, 
                   levels = rev(c("naive", "2GB block size", "rhdf5", "DelayedArray", 
-                                 "rhdf5 &\nDelayedArray", "2GB block size2", 
-                                 "rhdf5 &\nDelayedArray2", "in memory")))
+                                 "rhdf5 &\nDelayedArray", "scater", "2GB block size2", 
+                                 "rhdf5 &\nDelayedArray2", "scater2", "in memory")))
 ```
 
 Plotting the timings of all six iterations for each set of options.
@@ -82,5 +97,5 @@ ggplot(bm.first, aes(x = expr, y = time / 1e9, color = data_type)) +
 
 
 ```{r, sessionInfo}
-sessionInfo()
+devtools::session_info(c("HDF5Array", "DelayedArray"))
 ```

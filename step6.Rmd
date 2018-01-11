@@ -1,0 +1,59 @@
+---
+title: "scater and beachmat"
+output: html_document
+---
+
+<style>
+pre {
+  overflow-x: auto;
+}
+pre code {
+  word-wrap: normal;
+  white-space: pre;
+}
+</style>
+
+```{r global_options, echo = FALSE, include = FALSE}
+options(width = 150)
+```
+
+Install *scater* from Github to get the latest version.
+ 
+```{r, installBranch, results = 'hide', message = FALSE, warning = FALSE}
+if(packageVersion('scater') < "1.7.3") {
+    devtools::install_github(repo = "davismcc/scater", quiet = TRUE, force = TRUE)
+}
+```
+
+```{r, load-libs, message=FALSE}
+library(TENxBrainData)
+library(microbenchmark)
+library(scater)
+options(DelayedArray.block.size=2e9)
+```
+
+```{r, load-data, message=FALSE}
+tenx <- TENxBrainData()
+tenx.sub <- tenx[,1:13000]
+```
+
+```{r, save-results}
+systime <- system.time(res6 <- scater:::.colSums(counts(tenx.sub)))
+save(res6, file = "res6.rda")
+systime
+```
+
+```{r, step6-run-benchmark}
+bm6 <- microbenchmark(scater:::.colSums(counts(tenx.sub)), 
+                      times = 5L, unit = "s",
+                      control = list(order = "block", warmup = 0))
+bm6 <- rbind(data.frame(expr = "", time = as.numeric(systime[3]) * 1e9), bm6)
+
+bm6$expr <- "scater"
+save(bm6, file = "bm6.rda")
+bm6
+```
+
+```{r, sessionInfo}
+devtools::session_info(c("HDF5Array", "DelayedArray"))
+```

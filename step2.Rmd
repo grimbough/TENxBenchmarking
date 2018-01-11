@@ -3,15 +3,29 @@ title: "Uncompressed HDF5"
 output: html_document
 ---
 
+<style>
+pre {
+  overflow-x: auto;
+}
+pre code {
+  word-wrap: normal;
+  white-space: pre;
+}
+</style>
+
+```{r global_options, echo = FALSE, include = FALSE}
+options(width = 150)
+```
+
 Here we use the default versions of **rhdf5** and **DelayedArray**, but with an uncompressed vesion of the counts table on disk.
 
 ```{r, setup, echo=FALSE, message=FALSE}
-
-if(packageVersion('rhdf5') == "2.23.1.1") {
-    BiocInstaller::biocLite('rhdf5', suppressUpdates = TRUE, ask = FALSE)
+if(packageVersion('rhdf5') > "2.23.1") {
+    BiocInstaller::biocLite('grimbough/rhdf5', ref = "6713b80", suppressUpdates = TRUE, ask = FALSE)
 }
-if(packageVersion('DelayedArray') == "0.5.1.1") {
-    BiocInstaller::biocLite('DelayedArray', suppressUpdates = TRUE, ask = FALSE)
+if(packageVersion('DelayedArray') > "0.5.6") {
+    BiocInstaller::biocLite('Bioconductor/DelayedArray', ref = "82d7d8b", suppressUpdates = TRUE, ask = FALSE)
+    BiocInstaller::biocLite("Bioconductor/HDF5Array", ref = "bd5760c", suppressUpdates = TRUE, ask = FALSE)
 }
 ```
 
@@ -43,7 +57,7 @@ h5.uncmp <- HDF5Array(file = '/tmpdata/msmith/tenx_uncompressed.h5',
 tenx.uncmp <- SingleCellExperiment(
     list(counts = h5.uncmp), rowData = rowData(tenx), colData = colData(tenx)
 )
-tenx.sub.uncmp <- tenx.uncmp[,1:130000]
+tenx.sub.uncmp <- tenx.uncmp[,1:13000]
 ```
 
 Run first iteration and save the results.
@@ -56,7 +70,7 @@ systime
 
 Benchmark 5 more times.
 
-```{r, run-benchmark}
+```{r, step2-run-benchmark}
 bm2 <- microbenchmark(colSums(counts(tenx.sub.uncmp)),
                       times = 5L, unit = "s",
                       control = list(order = "block", warmup = 0))
@@ -67,5 +81,5 @@ bm2
 ```
 
 ```{r, sessionInfo}
-sessionInfo()
+devtools::session_info(c("HDF5Array", "DelayedArray"))
 ```
